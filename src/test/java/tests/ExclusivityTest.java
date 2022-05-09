@@ -1,8 +1,11 @@
-import java.io.File;
-import java.util.List;
-import org.checkerframework.checker.exclusivity.ExclusivityChecker;
+package tests;
+
+import edu.kit.kastel.checker.exclusivity.ExclusivityChecker;
 import org.checkerframework.framework.test.CheckerFrameworkPerDirectoryTest;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Test runner for tests of the Exclusivity Checker.
