@@ -1,10 +1,10 @@
 package edu.kit.kastel.checker.exclusivity;
 
-import com.sun.source.tree.Tree;
-import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MemberSelectTree;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
 
 public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedTypeFactory> {
     public ExclusivityVisitor(BaseTypeChecker checker) {
@@ -12,13 +12,35 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
     }
 
     @Override
-    protected void commonAssignmentCheck(AnnotatedTypeMirror varType, AnnotatedTypeMirror valueType, Tree valueTree, @CompilerMessageKey String errorKey, Object... extraArgs) {
-        if (varType.getAnnotationInHierarchy(atypeFactory.READ_ONLY).equals(atypeFactory.EXCLUSIVITY_BOTTOM)) {
-            checker.reportError(varType, errorKey);
+    public Void visitAssignment(AssignmentTree node, Void p) {
+        System.out.printf("%s: %s = %s\n", node,
+                atypeFactory.getAnnotatedType(node.getVariable()),
+                atypeFactory.getAnnotatedType(node.getExpression()));
+
+        if (!atypeFactory.isValid(atypeFactory.getAnnotatedType(node.getExpression()))) {
+            checker.reportError(node.getExpression(), "assignment.use-killed-ref");
         }
-        if (valueType.getAnnotationInHierarchy(atypeFactory.READ_ONLY).equals(atypeFactory.EXCLUSIVITY_BOTTOM)) {
-            checker.reportError(valueType, errorKey);
-        }
-        super.commonAssignmentCheck(varType, valueType, valueTree, errorKey, extraArgs);
+
+        try {
+            MemberSelectTree lhs = (MemberSelectTree) node.getVariable();
+            try {
+                IdentifierTree ident = (IdentifierTree) lhs.getExpression();
+                if (ident.getName().contentEquals("this")) {
+                    if (!atypeFactory.isMutable(atypeFactory.getAnnotatedType(ident))) {
+                        // T-Assign: lhs is local var OR this is modifiable
+                        checker.reportError(node, "assignment.this-not-writable");
+                    }
+                } else {
+                    // Field access is only allowed to fields of this, not other objects
+                    checker.reportError(node, "assignment.invalid-lhs");
+                }
+            } catch (ClassCastException e) {
+                // No field access to arbitrary expressions is allowed
+                checker.reportError(node, "assignment.invalid-lhs");
+            }
+        } catch (ClassCastException ignored) {}
+
+        //return super.visitAssignment(node, p);
+        return p;
     }
 }

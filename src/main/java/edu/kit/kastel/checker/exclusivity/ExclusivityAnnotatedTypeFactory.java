@@ -7,23 +7,24 @@ import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.lang.model.element.AnnotationMirror;
 
 public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
-    protected final AnnotationMirror EXCL_MUT =
+    public final AnnotationMirror EXCL_MUT =
             AnnotationBuilder.fromClass(elements, ExclMut.class);
-    protected final AnnotationMirror EXCLUSIVITY_BOTTOM =
+    public final AnnotationMirror EXCLUSIVITY_BOTTOM =
             AnnotationBuilder.fromClass(elements, ExclusivityBottom.class);
-    protected final AnnotationMirror IMMUTABLE =
+    public final AnnotationMirror IMMUTABLE =
             AnnotationBuilder.fromClass(elements, Immutable.class);
-    protected final AnnotationMirror READ_ONLY =
+    public final AnnotationMirror READ_ONLY =
             AnnotationBuilder.fromClass(elements, ReadOnly.class);
-    protected final AnnotationMirror RESTRICTED =
+    public final AnnotationMirror RESTRICTED =
             AnnotationBuilder.fromClass(elements, Restricted.class);
-    protected final AnnotationMirror SHR_MUT =
+    public final AnnotationMirror SHR_MUT =
             AnnotationBuilder.fromClass(elements, ShrMut.class);
 
     public ExclusivityAnnotatedTypeFactory(BaseTypeChecker checker) {
@@ -57,5 +58,24 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 RESTRICTED,
                 annotationMirror
         );
+    }
+
+    public boolean isMutable(AnnotatedTypeMirror annotatedType) {
+        return isMutable(qualHierarchy.findAnnotationInHierarchy(
+                annotatedType.getAnnotations(), READ_ONLY
+        ));
+    }
+
+    public boolean isValid(AnnotationMirror annotationMirror) {
+        return !qualHierarchy.isSubtype(
+                annotationMirror,
+                EXCLUSIVITY_BOTTOM
+        );
+    }
+
+    public boolean isValid(AnnotatedTypeMirror annotatedType) {
+        return isValid(qualHierarchy.findAnnotationInHierarchy(
+                annotatedType.getAnnotations(), READ_ONLY
+        ));
     }
 }
