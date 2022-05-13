@@ -1,8 +1,6 @@
 package edu.kit.kastel.checker.exclusivity;
 
-import com.sun.source.tree.AssignmentTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.*;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 
@@ -17,9 +15,7 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
                 atypeFactory.getAnnotatedType(node.getVariable()),
                 atypeFactory.getAnnotatedType(node.getExpression()));
 
-        if (!atypeFactory.isValid(atypeFactory.getAnnotatedType(node.getExpression()))) {
-            checker.reportError(node.getExpression(), "assignment.use-killed-ref");
-        }
+        visitExpression(node.getExpression());
 
         try {
             MemberSelectTree lhs = (MemberSelectTree) node.getVariable();
@@ -42,5 +38,17 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
 
         //return super.visitAssignment(node, p);
         return p;
+    }
+
+    void visitExpression(ExpressionTree expr) {
+        if (!atypeFactory.isValid(atypeFactory.getAnnotatedType(expr))) {
+            checker.reportError(expr, "expr.invalid-ref");
+        }
+    }
+
+    @Override
+    public Void visitExpressionStatement(ExpressionStatementTree node, Void unused) {
+        visitExpression(node.getExpression());
+        return super.visitExpressionStatement(node, unused);
     }
 }
