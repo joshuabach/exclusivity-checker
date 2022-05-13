@@ -15,12 +15,12 @@ import java.util.List;
  * errors and warnings; see
  * https://github.com/typetools/checker-framework/blob/master/checker/tests/README .
  */
-public class ExclusivityTest extends CheckerFrameworkPerDirectoryTest {
-    public ExclusivityTest(List<File> testFiles) {
+public class LocalVarsTest extends CheckerFrameworkPerDirectoryTest {
+    public LocalVarsTest(List<File> testFiles) {
         super(
                 testFiles,
                 ExclusivityChecker.class,
-                "exclusivity",
+                "localvars",
                 "-Anomsgtext",
                 "-Astubs=stubs/",
                 "-nowarn");
@@ -28,6 +28,6 @@ public class ExclusivityTest extends CheckerFrameworkPerDirectoryTest {
 
     @Parameters
     public static String[] getTestDirs() {
-        return new String[] {"exclusivity"};
+        return new String[] {"localvars"};
     }
 }
