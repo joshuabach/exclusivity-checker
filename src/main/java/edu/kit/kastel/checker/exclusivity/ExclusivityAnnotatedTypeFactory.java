@@ -1,5 +1,6 @@
 package edu.kit.kastel.checker.exclusivity;
 
+import com.sun.source.tree.NewClassTree;
 import edu.kit.kastel.checker.exclusivity.qual.*;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
@@ -7,7 +8,10 @@ import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -77,5 +81,26 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         return isValid(qualHierarchy.findAnnotationInHierarchy(
                 annotatedType.getAnnotations(), READ_ONLY
         ));
+    }
+
+    @Override
+    protected TreeAnnotator createTreeAnnotator() {
+        return new ListTreeAnnotator(
+                super.createTreeAnnotator(),
+                new ExclusivityTreeAnnotator(this)
+        );
+    }
+
+    private class ExclusivityTreeAnnotator extends TreeAnnotator {
+        protected ExclusivityTreeAnnotator(AnnotatedTypeFactory aTypeFactory) {
+            super(aTypeFactory);
+        }
+
+        @Override
+        public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror annotatedTypeMirror) {
+            // new C() is always @ExclMut
+            annotatedTypeMirror.replaceAnnotation(EXCL_MUT);
+            return super.visitNewClass(node, annotatedTypeMirror);
+        }
     }
 }
