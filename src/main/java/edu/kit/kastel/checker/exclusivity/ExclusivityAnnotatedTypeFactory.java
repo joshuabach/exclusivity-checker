@@ -2,6 +2,7 @@ package edu.kit.kastel.checker.exclusivity;
 
 import com.sun.source.tree.NewClassTree;
 import edu.kit.kastel.checker.exclusivity.qual.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -43,21 +44,21 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         return new ExclusivityTransfer(analysis, this);
     }
 
-    public boolean isCopyable(AnnotationMirror annotationMirror) {
+    public boolean isCopyable(@NonNull AnnotationMirror annotationMirror) {
         return !qualHierarchy.isSubtype(
                 EXCL_MUT,
                 annotationMirror
         );
     }
 
-    public boolean isMutable(AnnotationMirror annotationMirror) {
+    public boolean isMutable(@NonNull AnnotationMirror annotationMirror) {
         return !qualHierarchy.isSubtype(
                 IMMUTABLE,
                 annotationMirror
         );
     }
 
-    public boolean mayHoldProperty(AnnotationMirror annotationMirror) {
+    public boolean mayHoldProperty(@NonNull AnnotationMirror annotationMirror) {
         return qualHierarchy.isSubtype(
                 RESTRICTED,
                 annotationMirror
@@ -65,12 +66,12 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public boolean isMutable(AnnotatedTypeMirror annotatedType) {
-        return isMutable(qualHierarchy.findAnnotationInHierarchy(
-                annotatedType.getAnnotations(), READ_ONLY
-        ));
+        AnnotationMirror annotation = annotatedType.getAnnotation();
+        assert annotation != null;
+        return isMutable(annotation);
     }
 
-    public boolean isValid(AnnotationMirror annotationMirror) {
+    public boolean isValid(@NonNull AnnotationMirror annotationMirror) {
         return !qualHierarchy.isSubtype(
                 annotationMirror,
                 EXCLUSIVITY_BOTTOM
@@ -78,9 +79,8 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public boolean isValid(AnnotatedTypeMirror annotatedType) {
-        return isValid(qualHierarchy.findAnnotationInHierarchy(
-                annotatedType.getAnnotations(), READ_ONLY
-        ));
+        AnnotationMirror annotation = annotatedType.getAnnotation();
+        return annotation == null || isValid(annotation);
     }
 
     @Override
