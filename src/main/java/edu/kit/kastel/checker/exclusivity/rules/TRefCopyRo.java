@@ -13,7 +13,7 @@ public class TRefCopyRo extends AssignmentRule {
     }
 
     @Override
-    protected void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+    public void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
         updateType(lhsNode, factory.READ_ONLY);
     }
 

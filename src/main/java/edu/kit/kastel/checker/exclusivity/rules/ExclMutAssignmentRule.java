@@ -15,7 +15,7 @@ abstract class ExclMutAssignmentRule extends AssignmentRule {
     }
 
     @Override
-    protected final void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+    public final void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
         if (hierarchy.isSubtype(getRefinedTypeAnnotation(rhsNode), factory.EXCL_MUT)) {
             updateType(lhsNode, getNewLhsTypeAnnotation());
             updateType(rhsNode, getNewRhsTypeAnnotation());

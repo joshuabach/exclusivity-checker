@@ -20,7 +20,7 @@ public class TRefNew extends AssignmentRule {
     }
 
     @Override
-    protected void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+    public void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
         if (rhsNode instanceof ObjectCreationNode) {
             updateType(lhsNode, factory.EXCL_MUT);
         } else {

@@ -12,7 +12,7 @@ import org.checkerframework.framework.flow.CFValue;
 
 import javax.lang.model.element.AnnotationMirror;
 
-abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
+public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
 
     public AssignmentRule(CFStore store, ExclusivityAnnotatedTypeFactory factory, CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
         super(store, factory, analysis);
@@ -22,11 +22,11 @@ abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
     protected final void applyInternal(AssignmentNode node) throws RuleNotApplicable {
         AnnotationMirror oldLhs = getRefinedTypeAnnotation(node.getTarget());
         AnnotationMirror oldRhs = getRefinedTypeAnnotation(node.getExpression());
-        applyInternal(node.getTarget(), node.getExpression());
+        apply(node.getTarget(), node.getExpression());
         printAssignment(node.getTarget(), oldLhs, node.getExpression(), oldRhs);
     }
 
-    protected abstract void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable;
+    public abstract void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable;
 
     private void printAssignment(Node lhsNode, AnnotationMirror oldLhsTypeAnno,
                                  Node rhsNode, AnnotationMirror oldRhsTypeAnno) {
