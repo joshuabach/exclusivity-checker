@@ -26,30 +26,29 @@ public class ExclusivityTransfer extends CFTransfer {
             AssignmentNode node, TransferInput<CFValue, CFStore> in) {
         CFStore store = in.getRegularStore();
 
-        // Attempt to apply all assignment rules, use first one that works
-        TypeRule[] rules = new TypeRule[]{
+        ChainRule<AssignmentRule> rules = getAssignmentRules(store);
+
+        try {
+            // Attempt to apply all assignment rules, use first one that works
+            rules.apply(node);
+        } catch (RuleNotApplicable ignored) {
+            // No valid rule to refine assignment, so it must be invalid.
+            // ExclusivityVisitor will report the error.
+            new TInvalidate(store, factory, analysis).apply(node.getTarget());
+            new TInvalidate(store, factory, analysis).apply(node.getExpression());
+        }
+
+        return new RegularTransferResult<>(null, in.getRegularStore());
+    }
+
+    private ChainRule<AssignmentRule> getAssignmentRules(CFStore store) {
+        return new ChainRule<>(
                 new TRefNew(store, factory, analysis),
                 new TRefCopy(store, factory, analysis),
                 new TRefSplitMut(store, factory, analysis),
                 new TRefSplitImmut(store, factory, analysis),
                 new TRefTransfer(store, factory, analysis),
-                new TRefCopyRo(store, factory, analysis),
-        };
-
-        boolean anyRuleWasApplied = false;
-        for (TypeRule rule : rules) {
-            try {
-                rule.apply(node);
-                anyRuleWasApplied = true;
-                break;
-            } catch (RuleNotApplicable ignored) {}
-        }
-        if (!anyRuleWasApplied) {
-            // No valid rule to refine assignment, so it must be invalid.
-            // ExclusivityVisitor will report the error.
-            new TInvalidate(store, factory, analysis).apply(node.getTarget());
-        }
-
-        return new RegularTransferResult<>(null, in.getRegularStore());
+                new TRefCopyRo(store, factory, analysis)
+        );
     }
 }
