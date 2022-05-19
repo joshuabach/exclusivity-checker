@@ -2,6 +2,7 @@ package edu.kit.kastel.checker.exclusivity.rules;
 
 import org.checkerframework.dataflow.cfg.node.Node;
 
+import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,10 +20,18 @@ public class ChainRule<R extends AssignmentRule> implements TypeRule{
 
     @Override
     public void apply(Node node) throws RuleNotApplicable {
+       apply(rule -> rule.apply(node), node);
+    }
+
+    public void apply(TypeMirror lhsType, Node rhsNode) throws RuleNotApplicable {
+        apply(rule -> rule.apply(lhsType, rhsNode), rhsNode);
+    }
+
+    private void apply(ThrowingConsumer<R, RuleNotApplicable> applicator, Node node) throws RuleNotApplicable {
         for (int i = 0; i < typeRules.size(); ++i) {
             R rule = typeRules.get(i);
             try {
-                rule.apply(node);
+                applicator.call(rule);
                 break;
             } catch (RuleNotApplicable ignored) {
                 if (i == typeRules.size() - 1) {
@@ -30,6 +39,11 @@ public class ChainRule<R extends AssignmentRule> implements TypeRule{
                 }
             }
         }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingConsumer<T, E extends Throwable> {
+       void call(T param) throws E;
     }
 
     @Override

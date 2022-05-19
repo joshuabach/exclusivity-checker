@@ -8,6 +8,8 @@ import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 
+import javax.lang.model.element.AnnotationMirror;
+
 public class TRefNew extends AssignmentRule {
 
     public TRefNew(CFStore store, ExclusivityAnnotatedTypeFactory factory, CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
@@ -20,10 +22,19 @@ public class TRefNew extends AssignmentRule {
     }
 
     @Override
-    public void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
-        if (rhsNode instanceof ObjectCreationNode) {
-            updateType(lhsNode, factory.EXCL_MUT);
-        } else {
+    public void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+        checkRhsNode(rhsNode);
+        updateType(lhsNode, factory.EXCL_MUT);
+    }
+
+    @Override
+    protected void applyInternal(AnnotationMirror lhsType, Node rhsNode) throws RuleNotApplicable {
+        checkRhsNode(rhsNode);
+        updateType(lhsType, factory.EXCL_MUT);
+    }
+
+    private void checkRhsNode(Node rhsNode) throws RuleNotApplicable {
+        if (!(rhsNode instanceof ObjectCreationNode)) {
             throw new RuleNotApplicable(getName(), rhsNode, "rhs node is no object creation");
         }
     }

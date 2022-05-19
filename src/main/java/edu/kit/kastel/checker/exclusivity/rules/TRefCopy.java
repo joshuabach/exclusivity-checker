@@ -15,13 +15,22 @@ public class TRefCopy extends AssignmentRule {
     }
 
     @Override
-    public void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+    public void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+        updateType(lhsNode, getAndCheckRhsTypeAnno(rhsNode));
+    }
+
+    @Override
+    protected void applyInternal(AnnotationMirror lhsTypeAnno, Node rhsNode) throws RuleNotApplicable {
+        updateType(lhsTypeAnno, getAndCheckRhsTypeAnno(rhsNode));
+    }
+
+    private AnnotationMirror getAndCheckRhsTypeAnno(Node rhsNode) throws RuleNotApplicable {
         AnnotationMirror oldRhsTypeAnno = getRefinedTypeAnnotation(rhsNode);
-        if (factory.isCopyable(oldRhsTypeAnno)) {
-            updateType(lhsNode, oldRhsTypeAnno);
-        } else {
+        if (!factory.isCopyable(oldRhsTypeAnno)) {
             throw new RuleNotApplicable(getName(), rhsNode, "rhs node is not copyable");
         }
+
+        return oldRhsTypeAnno;
     }
 
     @Override

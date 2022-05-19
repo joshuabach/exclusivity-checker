@@ -11,6 +11,7 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeMirror;
 
 public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
 
@@ -20,25 +21,41 @@ public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
 
     @Override
     protected final void applyInternal(AssignmentNode node) throws RuleNotApplicable {
-        AnnotationMirror oldLhs = getRefinedTypeAnnotation(node.getTarget());
-        AnnotationMirror oldRhs = getRefinedTypeAnnotation(node.getExpression());
         apply(node.getTarget(), node.getExpression());
-        printAssignment(node.getTarget(), oldLhs, node.getExpression(), oldRhs);
     }
 
-    public abstract void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable;
+    public final void apply(Node lhs, Node rhs) throws RuleNotApplicable {
+        AnnotationMirror oldLhs = getRefinedTypeAnnotation(lhs);
+        AnnotationMirror oldRhs = getRefinedTypeAnnotation(rhs);
+        applyInternal(lhs, rhs);
+        printAssignment(lhs, oldLhs, rhs, oldRhs);
+    }
+
+    void apply(TypeMirror lhsType, Node rhs) throws RuleNotApplicable {
+        AnnotationMirror oldRhs = getRefinedTypeAnnotation(rhs);
+        AnnotationMirror lhsTypeAnno = hierarchy.findAnnotationInHierarchy(lhsType.getAnnotationMirrors(), factory.READ_ONLY);
+        applyInternal(lhsTypeAnno, rhs);
+        printTypeChange(rhs, oldRhs);
+        System.out.print(",");
+    }
+
+    protected abstract void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable;
+    protected abstract void applyInternal(AnnotationMirror lhsType, Node rhsNode) throws RuleNotApplicable;
 
     private void printAssignment(Node lhsNode, AnnotationMirror oldLhsTypeAnno,
                                  Node rhsNode, AnnotationMirror oldRhsTypeAnno) {
-        System.out.printf("[%s ~> %s] %s = ",
-                prettyPrint(oldLhsTypeAnno),
-                prettyPrint(store.getValue(JavaExpression.fromNode(lhsNode)).getAnnotations().stream().findAny().get()),
-                lhsNode);
-        if (!(JavaExpression.fromNode(rhsNode) instanceof Unknown)) {
+        printTypeChange(lhsNode, oldLhsTypeAnno);
+        System.out.print(" = ");
+        printTypeChange(rhsNode, oldRhsTypeAnno);
+        System.out.println(";");
+    }
+
+    private void printTypeChange(Node node, AnnotationMirror oldTypeAnno) {
+        if (!(JavaExpression.fromNode(node) instanceof Unknown)) {
             System.out.printf("[%s ~> %s] ",
-                    prettyPrint(oldRhsTypeAnno),
-                    prettyPrint(store.getValue(JavaExpression.fromNode(rhsNode)).getAnnotations().stream().findAny().get()));
+                    prettyPrint(oldTypeAnno),
+                    prettyPrint(store.getValue(JavaExpression.fromNode(node)).getAnnotations().stream().findAny().get()));
         }
-        System.out.printf("%s;%n", rhsNode);
+        System.out.print(node);
     }
 }

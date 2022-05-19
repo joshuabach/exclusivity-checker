@@ -15,11 +15,23 @@ abstract class ExclMutAssignmentRule extends AssignmentRule {
     }
 
     @Override
-    public final void apply(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
-        if (hierarchy.isSubtype(getRefinedTypeAnnotation(rhsNode), factory.EXCL_MUT)) {
-            updateType(lhsNode, getNewLhsTypeAnnotation());
-            updateType(rhsNode, getNewRhsTypeAnnotation());
-        } else {
+    public final void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
+        checkRhsTypeAnno(rhsNode);
+
+        updateType(lhsNode, getNewLhsTypeAnnotation());
+        updateType(rhsNode, getNewRhsTypeAnnotation());
+    }
+
+    @Override
+    protected void applyInternal(AnnotationMirror lhsType, Node rhsNode) throws RuleNotApplicable {
+        checkRhsTypeAnno(rhsNode);
+
+        updateType(lhsType, getNewLhsTypeAnnotation());
+        updateType(rhsNode, getNewRhsTypeAnnotation());
+    }
+
+    private void checkRhsTypeAnno(Node rhsNode) throws RuleNotApplicable {
+        if (!hierarchy.isSubtype(getRefinedTypeAnnotation(rhsNode), factory.EXCL_MUT)) {
             throw new RuleNotApplicable(getName(), rhsNode, "rhs is not ExclMut");
         }
     }

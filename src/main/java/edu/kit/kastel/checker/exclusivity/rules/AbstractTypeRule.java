@@ -55,20 +55,25 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
     protected final void updateType(
             Node node, AnnotationMirror refinedType
     ) throws RuleNotApplicable {
-        AnnotationMirror declaredType = getDeclaredTypeAnnotation(node);
-        assert declaredType != null;
-
-        AnnotationMirror newRefinedType;
-        if (!hierarchy.isSubtype(refinedType, declaredType)) {
-            throw new RuleNotApplicable(getName(), node, "refinement violates declaration");
-        } else {
-            newRefinedType = refinedType;
-        }
+        updateType(getDeclaredTypeAnnotation(node), refinedType);
 
         CFValue abstractValue = analysis.createAbstractValue(
-                Collections.singleton(newRefinedType), node.getType());
+                Collections.singleton(refinedType), node.getType());
         store.replaceValue(JavaExpression.fromNode(node),
                 abstractValue);
+    }
+
+    protected final void updateType(AnnotationMirror declTypeAnno, AnnotationMirror refinedType)
+            throws RuleNotApplicable {
+        if (!isValidRefinement(declTypeAnno, refinedType)) {
+            // TODO This is technically not the correct exception
+            throw new RuleNotApplicable(getName(), declTypeAnno, "refinement violates declaration");
+        }
+    }
+
+    protected final boolean isValidRefinement(AnnotationMirror declaredType, AnnotationMirror refinedType) {
+        assert declaredType != null;
+        return hierarchy.isSubtype(refinedType, declaredType);
     }
 
     private AnnotationMirror getDeclaredTypeAnnotation(Node node) {
