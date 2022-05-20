@@ -51,4 +51,10 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
         visitExpression(node.getExpression());
         return super.visitExpressionStatement(node, unused);
     }
+
+    @Override
+    public Void visitMethodInvocation(MethodInvocationTree node, Void p) {
+        // TODO What do we need to do here?
+        return p;
+    }
 }

@@ -46,4 +46,18 @@ public class ExclusivityTransfer extends CFTransfer {
                 new TRefCopyRo(store, factory, analysis)
         );
     }
+
+    @Override
+    public TransferResult<CFValue, CFStore> visitMethodInvocation(
+            MethodInvocationNode n, TransferInput<CFValue, CFStore> in
+    ) {
+        CFStore store = in.getRegularStore();
+        try {
+            new TMethodInvocation(store, factory, analysis).apply(n);
+        } catch (RuleNotApplicable e) {
+            new TInvalidate(store, factory, analysis).apply(n);
+        }
+
+        return new RegularTransferResult<>(null, store);
+    }
 }
