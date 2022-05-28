@@ -13,7 +13,7 @@ class ReferenceSplitting {
         x = new Foo();      // x is refined to @ExclMut
         a = x;              // x is updated to @ShrMut
         b = x;              // invalid, x is not @ExclMut anyomre
-        // :: error: expr.invalid-ref
+        // :: error: type.invalid
         y = b;
     }
 
@@ -25,7 +25,7 @@ class ReferenceSplitting {
         x = new Foo();      // x is refined to @ExclMut
         a = x;              // x is updated to @Immut
         b = x;              // invalid, x is not @ExclMut anyomre
-        // :: error: expr.invalid-ref
+        // :: error: type.invalid
         y = b;
     }
 
@@ -38,7 +38,7 @@ class ReferenceSplitting {
         x = new Foo();  // x is refined to @ExclMut
         a = x;          // x is updated to @ReadOnly
         b = x;          // invalid, x is not @ExclMut anymore
-        // :: error: expr.invalid-ref
+        // :: error: type.invalid
         y = b;
     }
 }

@@ -3,6 +3,7 @@ package edu.kit.kastel.checker.exclusivity;
 import com.sun.source.tree.*;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
+import org.checkerframework.common.basetype.TypeValidator;
 
 public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedTypeFactory> {
     public ExclusivityVisitor(BaseTypeChecker checker) {
@@ -11,11 +12,12 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
 
     @Override
     public Void visitAssignment(AssignmentTree node, Void p) {
+        validateTypeOf(node.getExpression());
+        validateTypeOf(node.getVariable());
+
         System.out.printf("%s: %s = %s\n", node,
                 atypeFactory.getAnnotatedType(node.getVariable()),
                 atypeFactory.getAnnotatedType(node.getExpression()));
-
-        visitExpression(node.getExpression());
 
         try {
             MemberSelectTree lhs = (MemberSelectTree) node.getVariable();
@@ -40,15 +42,9 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
         return p;
     }
 
-    void visitExpression(ExpressionTree expr) {
-        if (!atypeFactory.isValid(atypeFactory.getAnnotatedType(expr))) {
-            checker.reportError(expr, "expr.invalid-ref");
-        }
-    }
-
     @Override
     public Void visitExpressionStatement(ExpressionStatementTree node, Void unused) {
-        visitExpression(node.getExpression());
+        validateTypeOf(node.getExpression());
         return super.visitExpressionStatement(node, unused);
     }
 
@@ -56,5 +52,10 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
     public Void visitMethodInvocation(MethodInvocationTree node, Void p) {
         // TODO What do we need to do here?
         return p;
+    }
+
+    @Override
+    protected TypeValidator createTypeValidator() {
+        return new ExclusivityValidator(checker, this, atypeFactory);
     }
 }

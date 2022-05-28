@@ -18,7 +18,7 @@ class MethodCall {
         x = new Foo();   // x is refined to @ExclMut
         this.mth(x);        // x is refined to @ShrMut
         a = x;           // invalid, x is not @ExclMut anymore
-        // :: error: expr.invalid-ref
+        // :: type.invalid
         y = a;
     }
 

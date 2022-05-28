@@ -2,6 +2,8 @@ import edu.kit.kastel.checker.exclusivity.qual.*;
 
 class Assign {
     @ExclMut Foo foo;
+    // :: error: type.invalid
+    @ExclusivityBottom Foo bar;
 
     // :: warning: inconsistent.constructor.type
     public Assign() {}
