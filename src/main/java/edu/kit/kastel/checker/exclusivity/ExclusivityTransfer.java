@@ -1,10 +1,12 @@
 package edu.kit.kastel.checker.exclusivity;
 
+import com.sun.source.tree.Tree;
 import edu.kit.kastel.checker.exclusivity.rules.*;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
 import org.checkerframework.dataflow.cfg.node.AssignmentNode;
+import org.checkerframework.dataflow.cfg.node.MethodInvocationNode;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
@@ -25,17 +27,10 @@ public class ExclusivityTransfer extends CFTransfer {
     public TransferResult<CFValue, CFStore> visitAssignment(
             AssignmentNode node, TransferInput<CFValue, CFStore> in) {
         CFStore store = in.getRegularStore();
-
-        ChainRule<AssignmentRule> rules = getAssignmentRules(store);
-
-        try {
-            // Attempt to apply all assignment rules, use first one that works
-            rules.apply(node);
-        } catch (RuleNotApplicable ignored) {
-            // No valid rule to refine assignment, so it must be invalid.
-            // ExclusivityVisitor will report the error.
-            new TInvalidate(store, factory, analysis).apply(node.getTarget());
-            new TInvalidate(store, factory, analysis).apply(node.getExpression());
+        if (node.getExpression().getTree().getKind() == Tree.Kind.METHOD_INVOCATION) {
+            new TMethodInvocationHelper(store, factory, analysis).applyOrInvalidate(node.getTarget(), node.getExpression());
+        } else {
+            new TAssign(store, factory, analysis).applyOrInvalidate(node.getTarget(), node.getExpression());
         }
 
         return new RegularTransferResult<>(null, in.getRegularStore());

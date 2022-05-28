@@ -11,7 +11,6 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.TypeMirror;
 
 public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
 
@@ -31,10 +30,9 @@ public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
         printAssignment(lhs, oldLhs, rhs, oldRhs);
     }
 
-    void apply(TypeMirror lhsType, Node rhs) throws RuleNotApplicable {
+    public final void apply(AnnotationMirror lhsType, Node rhs) throws RuleNotApplicable {
         AnnotationMirror oldRhs = getRefinedTypeAnnotation(rhs);
-        AnnotationMirror lhsTypeAnno = hierarchy.findAnnotationInHierarchy(lhsType.getAnnotationMirrors(), factory.READ_ONLY);
-        applyInternal(lhsTypeAnno, rhs);
+        applyInternal(lhsType, rhs);
         printTypeChange(rhs, oldRhs);
         System.out.print(",");
     }
@@ -57,5 +55,16 @@ public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
                     prettyPrint(store.getValue(JavaExpression.fromNode(node)).getAnnotations().stream().findAny().get()));
         }
         System.out.print(node);
+    }
+
+    protected final ChainRule<AssignmentRule> getAssignmentRules(CFStore store) {
+        return new ChainRule<>(
+                new TRefNew(store, factory, analysis),
+                new TRefCopy(store, factory, analysis),
+                new TRefSplitMut(store, factory, analysis),
+                new TRefSplitImmut(store, factory, analysis),
+                new TRefTransfer(store, factory, analysis),
+                new TRefCopyRo(store, factory, analysis)
+        );
     }
 }
