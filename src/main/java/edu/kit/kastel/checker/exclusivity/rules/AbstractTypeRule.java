@@ -1,6 +1,7 @@
 package edu.kit.kastel.checker.exclusivity.rules;
 
 import edu.kit.kastel.checker.exclusivity.ExclusivityAnnotatedTypeFactory;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.dataflow.expression.JavaExpression;
 import org.checkerframework.dataflow.expression.Unknown;
@@ -39,7 +40,9 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
             throw new RuleNotApplicable(getName(), abstractNode, "wrong node type");
         }
         applyInternal(node);
-        System.out.println("Applied " + getName());
+        if (getName() != null) {
+            System.out.println("Applied " + getName());
+        }
     }
 
     protected abstract void applyInternal(N node) throws RuleNotApplicable;
@@ -107,10 +110,10 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
         return oldAnno;
     }
 
-    protected final String prettyPrint(AnnotationMirror anno) {
+    protected final String prettyPrint(@Nullable AnnotationMirror anno) {
         // TODO: There has to be a better way to do this
         String pkgName = "edu.kit.kastel.checker.exclusivity.qual.";
-        StringBuilder s = new StringBuilder(anno.toString());
+        StringBuilder s = new StringBuilder(anno != null ? anno.toString() : "");
         s.delete(s.indexOf(pkgName), s.indexOf(pkgName) + pkgName.length());
         return s.toString();
     }
