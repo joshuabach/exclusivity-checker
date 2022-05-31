@@ -49,15 +49,17 @@ public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
     }
 
     private void printTypeChange(Node node, AnnotationMirror oldTypeAnno) {
-        if (!(JavaExpression.fromNode(node) instanceof Unknown)) {
+        if (store != null && !(JavaExpression.fromNode(node) instanceof Unknown)) {
+            CFValue value = store.getValue(JavaExpression.fromNode(node));
+            assert value != null;
             System.out.printf("[%s ~> %s] ",
                     prettyPrint(oldTypeAnno),
-                    prettyPrint(store.getValue(JavaExpression.fromNode(node)).getAnnotations().stream().findAny().get()));
+                    prettyPrint(hierarchy.findAnnotationInHierarchy(value.getAnnotations(), factory.READ_ONLY)));
         }
         System.out.print(node);
     }
 
-    protected final ChainRule<AssignmentRule> getAssignmentRules(CFStore store) {
+    protected final ChainRule<AssignmentRule> getAssignmentRules() {
         return new ChainRule<>(
                 new TRefNew(store, factory, analysis),
                 new TRefCopy(store, factory, analysis),

@@ -16,13 +16,13 @@ public class TAssign extends AssignmentRule {
 
     @Override
     protected void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
-        ChainRule<AssignmentRule> rules = getAssignmentRules(store);
+        ChainRule<AssignmentRule> rules = getAssignmentRules();
         rules.apply(lhsNode, rhsNode);
     }
 
     @Override
     protected void applyInternal(AnnotationMirror lhsType, Node rhsNode) throws RuleNotApplicable {
-        ChainRule<AssignmentRule> rules = getAssignmentRules(store);
+        ChainRule<AssignmentRule> rules = getAssignmentRules();
         rules.apply(lhsType, rhsNode);
     }
 

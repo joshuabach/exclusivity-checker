@@ -4,7 +4,6 @@ import edu.kit.kastel.checker.exclusivity.ExclusivityAnnotatedTypeFactory;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.dataflow.expression.JavaExpression;
-import org.checkerframework.dataflow.expression.Unknown;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
@@ -15,12 +14,15 @@ import javax.lang.model.element.AnnotationMirror;
 import java.util.Collections;
 
 abstract class AbstractTypeRule<N extends Node> implements TypeRule {
-    protected final CFStore store;
+    /*
+     * If store is null, type rule shall just check for applicability without actually refining types.
+     */
+    protected final @Nullable CFStore store;
     protected final QualifierHierarchy hierarchy;
     protected final ExclusivityAnnotatedTypeFactory factory;
-    protected CFAbstractAnalysis<CFValue, CFStore, CFTransfer>  analysis;
+    protected @Nullable CFAbstractAnalysis<CFValue, CFStore, CFTransfer>  analysis;
 
-    public AbstractTypeRule(CFStore store, ExclusivityAnnotatedTypeFactory factory,
+    public AbstractTypeRule(@Nullable CFStore store, ExclusivityAnnotatedTypeFactory factory,
                             CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
         this.store = store;
         this.analysis = analysis;
@@ -60,10 +62,12 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
     ) throws RuleNotApplicable {
         updateType(getDeclaredTypeAnnotation(node), refinedType);
 
+        if (store != null && analysis != null) {
         CFValue abstractValue = analysis.createAbstractValue(
                 Collections.singleton(refinedType), node.getType());
-        store.replaceValue(JavaExpression.fromNode(node),
-                abstractValue);
+            store.replaceValue(JavaExpression.fromNode(node),
+                    abstractValue);
+        }
     }
 
     protected final void updateType(AnnotationMirror declTypeAnno, AnnotationMirror refinedType)
@@ -86,26 +90,10 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
                 factory.READ_ONLY);
     }
 
-    protected final CFValue getOrInsert(Node node) {
-        JavaExpression expr = JavaExpression.fromNode(node);
-        CFValue value;
-        if (expr instanceof Unknown)
-            value = null;
-        else
-            value = store.getValue(expr);
-
-        if (value == null) {
-            value = analysis.createAbstractValue(factory.getAnnotatedType(node.getTree()));
-            assert value != null;
-            store.insertValue(expr, value);
-        }
-
-        return value;
-    }
-
     protected final AnnotationMirror getRefinedTypeAnnotation(Node node) {
         AnnotationMirror oldAnno = hierarchy.findAnnotationInHierarchy(
-                getOrInsert(node).getAnnotations(), factory.READ_ONLY);
+                factory.getAnnotatedType(node.getTree()).getAnnotations(),
+                factory.READ_ONLY);
         assert oldAnno != null;
         return oldAnno;
     }
