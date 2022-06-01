@@ -18,11 +18,16 @@ public class ExclusivityValidator extends BaseTypeValidator {
     @Override
     public boolean isValid(AnnotatedTypeMirror type, Tree tree) {
         AnnotationMirror typeAnno = type.getAnnotationInHierarchy(atypeFactory.READ_ONLY);
-        boolean isInvalid = atypeFactory.getQualifierHierarchy().isSubtype(typeAnno, atypeFactory.EXCLUSIVITY_BOTTOM);
+        return super.isValid(type, tree) && isValid(typeAnno, tree);
+    }
+
+    public boolean isValid(AnnotationMirror typeAnno, Tree tree) {
+        boolean isInvalid = atypeFactory.getQualifierHierarchy()
+                .isSubtype(typeAnno, atypeFactory.EXCLUSIVITY_BOTTOM);
         if (isInvalid) {
-            checker.reportError(tree, "type.invalid", type);
+            checker.reportError(tree, "type.invalid", typeAnno);
         }
-        return super.isValid(type, tree) && !isInvalid;
+        return !isInvalid;
     }
 
     @Override

@@ -8,12 +8,11 @@ class ReferenceSplitting {
 
     void refTransfer() {
         @ReadOnly Foo x;
-        @ReadOnly Foo y;
         @ExclMut Foo a;
 
         x = new Foo();  // x is refined to @ExclMut
         a = x;          // x is updated to @ReadOnly
-        this.field = x; // invalid, x is not @ExclMut anymore
         // :: error: type.invalid
+        this.field = x; // invalid, x is not @ExclMut anymore
     }
 }

@@ -13,13 +13,11 @@ class MethodCall {
 
     void invoke() {
         @ReadOnly Foo x;
-        @ReadOnly Foo y;
         @ExclMut Foo a;
         x = new Foo();   // x is refined to @ExclMut
-        this.mth(x);        // x is refined to @ShrMut
-        a = x;           // invalid, x is not @ExclMut anymore
+        this.mth(x);     // x is refined to @ShrMut
         // :: type.invalid
-        y = a;
+        a = x;           // invalid, x is not @ExclMut anymore
     }
 
     void invokeAssign() {

@@ -12,13 +12,6 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
 
     @Override
     public Void visitAssignment(AssignmentTree node, Void p) {
-        validateTypeOf(node.getExpression());
-        validateTypeOf(node.getVariable());
-
-        System.out.printf("%s: %s = %s\n", node,
-                atypeFactory.getAnnotatedType(node.getVariable()),
-                atypeFactory.getAnnotatedType(node.getExpression()));
-
         try {
             MemberSelectTree lhs = (MemberSelectTree) node.getVariable();
             try {
@@ -37,6 +30,12 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
                 checker.reportError(node, "assignment.invalid-lhs");
             }
         } catch (ClassCastException ignored) {}
+
+        // TODO Not thread-safe :-)
+        atypeFactory.useIFlowAfter(node);
+        validateTypeOf(node.getExpression());
+        validateTypeOf(node.getVariable());
+        atypeFactory.useRegularIFlow();
 
         //return super.visitAssignment(node, p);
         return p;
