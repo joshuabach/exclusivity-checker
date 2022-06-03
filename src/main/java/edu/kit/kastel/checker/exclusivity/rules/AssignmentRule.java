@@ -50,11 +50,14 @@ public abstract class AssignmentRule extends AbstractTypeRule<AssignmentNode> {
 
     private void printTypeChange(Node node, AnnotationMirror oldTypeAnno) {
         if (store != null && !(JavaExpression.fromNode(node) instanceof Unknown)) {
+            AnnotationMirror newTypeAnno = oldTypeAnno;
             CFValue value = store.getValue(JavaExpression.fromNode(node));
-            assert value != null;
+            if (value != null) {
+                newTypeAnno = factory.getExclusivityAnnotation(value.getAnnotations());
+            }
             System.out.printf("[%s ~> %s] ",
                     prettyPrint(oldTypeAnno),
-                    prettyPrint(hierarchy.findAnnotationInHierarchy(value.getAnnotations(), factory.READ_ONLY)));
+                    prettyPrint(newTypeAnno));
         }
         System.out.print(node);
     }

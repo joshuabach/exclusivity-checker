@@ -1,6 +1,7 @@
 package edu.kit.kastel.checker.exclusivity.rules;
 
 import edu.kit.kastel.checker.exclusivity.ExclusivityAnnotatedTypeFactory;
+import org.checkerframework.dataflow.cfg.node.MethodInvocationNode;
 import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
@@ -8,6 +9,7 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeMirror;
 
 public class TMethodInvocationHelper extends AssignmentRule {
     public TMethodInvocationHelper(CFStore store, ExclusivityAnnotatedTypeFactory factory, CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
@@ -16,8 +18,20 @@ public class TMethodInvocationHelper extends AssignmentRule {
 
     @Override
     protected void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
-        AnnotationMirror rhsNodeAnno = factory.getExclusivityAnnotation(rhsNode.getType().getAnnotationMirrors());
-        updateType(lhsNode, rhsNodeAnno);
+        MethodInvocationNode methodInvocationNode;
+        try {
+            methodInvocationNode = (MethodInvocationNode) rhsNode;
+        } catch (ClassCastException ignored) {
+            throw new RuleNotApplicable(getName(), rhsNode, "rhs is no method invocation");
+        }
+
+        applyInternal(lhsNode, methodInvocationNode);
+    }
+
+    protected void applyInternal(Node lhsNode, MethodInvocationNode rhsNode) throws RuleNotApplicable {
+        TypeMirror returnType = rhsNode.getTarget().getMethod().getReturnType();
+        AnnotationMirror returnTypeAnno = factory.getExclusivityAnnotation(returnType.getAnnotationMirrors());
+        updateType(lhsNode, returnTypeAnno);
     }
 
     public void applyOrInvalidate(Node lhsNode, Node rhsNode) {

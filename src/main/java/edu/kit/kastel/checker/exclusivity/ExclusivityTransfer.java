@@ -1,6 +1,5 @@
 package edu.kit.kastel.checker.exclusivity;
 
-import com.sun.source.tree.Tree;
 import edu.kit.kastel.checker.exclusivity.rules.*;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
@@ -13,7 +12,6 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 
 public class ExclusivityTransfer extends CFTransfer {
-
     private final ExclusivityAnnotatedTypeFactory factory;
 
     public ExclusivityTransfer(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis,
@@ -27,8 +25,9 @@ public class ExclusivityTransfer extends CFTransfer {
     public TransferResult<CFValue, CFStore> visitAssignment(
             AssignmentNode node, TransferInput<CFValue, CFStore> in) {
         CFStore store = in.getRegularStore();
-        if (node.getExpression().getTree().getKind() == Tree.Kind.METHOD_INVOCATION) {
-            new TMethodInvocationHelper(store, factory, analysis).applyOrInvalidate(node.getTarget(), node.getExpression());
+        if (node.getExpression() instanceof MethodInvocationNode) {
+            new TMethodInvocationHelper(store, factory, analysis)
+                    .applyOrInvalidate(node.getTarget(), node.getExpression());
         } else {
             new TAssign(store, factory, analysis).applyOrInvalidate(node.getTarget(), node.getExpression());
         }

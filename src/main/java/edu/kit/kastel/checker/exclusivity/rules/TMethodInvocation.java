@@ -1,5 +1,6 @@
 package edu.kit.kastel.checker.exclusivity.rules;
 
+import com.sun.tools.javac.code.Type;
 import edu.kit.kastel.checker.exclusivity.ExclusivityAnnotatedTypeFactory;
 import org.checkerframework.dataflow.cfg.node.MethodInvocationNode;
 import org.checkerframework.dataflow.cfg.node.Node;
@@ -41,11 +42,12 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
         }
         System.out.print(")");
 
-        // TODO Rule is for x = mth(...), logic for refinement of x needs to go into visitAssignment
+        // Rule is for x = mth(...), logic for refinement of x is in T-Method-Invocation-Helper
         TypeMirror returnType = node.getTarget().getMethod().getReturnType();
-        AnnotationMirror returnTypeAnno = factory.getExclusivityAnnotation(returnType.getAnnotationMirrors());
-        updateType(node, returnTypeAnno);
-        System.out.printf(" -> %s\n", prettyPrint(returnTypeAnno));
+        if (!(returnType instanceof Type.JCVoidType)) {
+            AnnotationMirror returnTypeAnno = factory.getExclusivityAnnotation(returnType.getAnnotationMirrors());
+            System.out.printf(" -> %s\n", prettyPrint(returnTypeAnno));
+        }
 
         // TODO Remove possibly invalidated refinements
     }
