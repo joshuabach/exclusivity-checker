@@ -16,7 +16,7 @@ public class TMethodInvocationHelper extends AssignmentRule {
 
     @Override
     protected void applyInternal(Node lhsNode, Node rhsNode) throws RuleNotApplicable {
-        AnnotationMirror rhsNodeAnno = hierarchy.findAnnotationInHierarchy(rhsNode.getType().getAnnotationMirrors(), factory.READ_ONLY);
+        AnnotationMirror rhsNodeAnno = factory.getExclusivityAnnotation(rhsNode.getType().getAnnotationMirrors());
         updateType(lhsNode, rhsNodeAnno);
     }
 

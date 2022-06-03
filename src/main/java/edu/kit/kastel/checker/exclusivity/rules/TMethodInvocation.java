@@ -29,23 +29,21 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
         }
 
         System.out.printf("%s(", node.getTarget().getMethod().getSimpleName());
-        AnnotationMirror receiverTypeAnno = factory.getQualifierHierarchy().findAnnotationInHierarchy(receiverType.getAnnotationMirrors(), factory.READ_ONLY);
+        AnnotationMirror receiverTypeAnno = factory.getExclusivityAnnotation(receiverType.getAnnotationMirrors());
         new TAssign(store, factory, analysis).applyOrInvalidate(receiverTypeAnno, receiver);
 
         // "param_i = arg_i;"
         int i = 0;
         for (VariableElement paramDecl : node.getTarget().getMethod().getParameters()) {
             Node paramValue = node.getArgument(i++);
-            AnnotationMirror paramTypeAnno = factory.getQualifierHierarchy().findAnnotationInHierarchy(
-                    paramDecl.asType().getAnnotationMirrors(), factory.READ_ONLY
-            );
+            AnnotationMirror paramTypeAnno = factory.getExclusivityAnnotation(paramDecl.asType().getAnnotationMirrors());
             new TAssign(store, factory, analysis).applyOrInvalidate(paramTypeAnno, paramValue);
         }
         System.out.print(")");
 
         // TODO Rule is for x = mth(...), logic for refinement of x needs to go into visitAssignment
         TypeMirror returnType = node.getTarget().getMethod().getReturnType();
-        AnnotationMirror returnTypeAnno = factory.getQualifierHierarchy().findAnnotationInHierarchy(returnType.getAnnotationMirrors(), factory.READ_ONLY);
+        AnnotationMirror returnTypeAnno = factory.getExclusivityAnnotation(returnType.getAnnotationMirrors());
         updateType(node, returnTypeAnno);
         System.out.printf(" -> %s\n", prettyPrint(returnTypeAnno));
 

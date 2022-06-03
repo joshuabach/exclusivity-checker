@@ -21,6 +21,7 @@ import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.lang.model.element.AnnotationMirror;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
@@ -54,7 +55,7 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         return new ExclusivityTransfer(analysis, this);
     }
 
-    public AnnotationMirror getExclusivityAnnotation(Set<AnnotationMirror> qualifiers) {
+    public AnnotationMirror getExclusivityAnnotation(Collection<? extends AnnotationMirror> qualifiers) {
         return qualHierarchy.findAnnotationInHierarchy(qualifiers, READ_ONLY);
     }
 
@@ -84,7 +85,7 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public boolean isMutable(AnnotatedTypeMirror annotatedType) {
-        AnnotationMirror annotation = annotatedType.getAnnotation();
+        AnnotationMirror annotation = getExclusivityAnnotation(annotatedType);
         assert annotation != null;
         return isMutable(annotation);
     }
@@ -97,7 +98,7 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public boolean isValid(AnnotatedTypeMirror annotatedType) {
-        AnnotationMirror annotation = annotatedType.getAnnotation();
+        AnnotationMirror annotation = getExclusivityAnnotation(annotatedType);
         return annotation == null || isValid(annotation);
     }
 

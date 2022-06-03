@@ -84,16 +84,14 @@ abstract class AbstractTypeRule<N extends Node> implements TypeRule {
     }
 
     private AnnotationMirror getDeclaredTypeAnnotation(Node node) {
-        return hierarchy.findAnnotationInHierarchy(
+        return factory.getExclusivityAnnotation(
                 // TODO Do we need to get declared types for nodes not supported by getAnnotatedTypeLhs?
-                factory.getAnnotatedTypeLhs(node.getTree()).getAnnotations(),
-                factory.READ_ONLY);
+                factory.getAnnotatedTypeLhs(node.getTree()).getAnnotations());
     }
 
     protected final AnnotationMirror getRefinedTypeAnnotation(Node node) {
-        AnnotationMirror oldAnno = hierarchy.findAnnotationInHierarchy(
-                factory.getAnnotatedType(node.getTree()).getAnnotations(),
-                factory.READ_ONLY);
+        AnnotationMirror oldAnno = factory.getExclusivityAnnotation(
+                factory.getAnnotatedType(node.getTree()).getAnnotations());
         assert oldAnno != null;
         return oldAnno;
     }
