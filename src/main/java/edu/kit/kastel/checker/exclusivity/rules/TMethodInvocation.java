@@ -4,10 +4,13 @@ import com.sun.tools.javac.code.Type;
 import edu.kit.kastel.checker.exclusivity.ExclusivityAnnotatedTypeFactory;
 import org.checkerframework.dataflow.cfg.node.MethodInvocationNode;
 import org.checkerframework.dataflow.cfg.node.Node;
+import org.checkerframework.dataflow.cfg.node.ThisNode;
+import org.checkerframework.dataflow.expression.FieldAccess;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
@@ -49,7 +52,35 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
             System.out.printf(" -> %s\n", prettyPrint(returnTypeAnno));
         }
 
-        // TODO Remove possibly invalidated refinements
+        // Remove possibly invalidated refinements
+        if (store != null && analysis != null) {
+            CFValue thisValue = store.getValue((ThisNode) null);
+            AnnotationMirror thisType;
+            if (thisValue != null) {
+                thisType = factory.getExclusivityAnnotation(thisValue.getAnnotations());
+            } else {
+                AnnotatedTypeMirror.AnnotatedDeclaredType currentMethodReceiverType =
+                        factory.getAnnotatedType(analysis.getContainingMethod(node.getTree()))
+                                .getReceiverType();
+
+                if (currentMethodReceiverType == null) {
+                    System.err.printf("warning: ignoring call in method without explicit 'this' parameter declaration: %s\n",
+                            analysis.getContainingMethod(node.getTree()));
+                    return;
+                }
+
+                thisType = factory.getExclusivityAnnotation(
+                        currentMethodReceiverType.getAnnotations());
+            }
+
+            if (receiver instanceof ThisNode || !factory.mayHoldProperty(thisType)) {
+                for (FieldAccess field : store.getFieldValues().keySet()) {
+                    store.clearValue(field);
+                    System.out.printf("Clearing refinement for %s after %s\n",
+                            field, node);
+                }
+            }
+        }
     }
 
     @Override
