@@ -25,6 +25,7 @@ public class ExclusivityTransfer extends CFTransfer {
     public TransferResult<CFValue, CFStore> visitAssignment(
             AssignmentNode node, TransferInput<CFValue, CFStore> in) {
         CFStore store = in.getRegularStore();
+
         if (node.getExpression() instanceof MethodInvocationNode) {
             new TMethodInvocationHelper(store, factory, analysis)
                     .applyOrInvalidate(node.getTarget(), node.getExpression());
@@ -35,22 +36,12 @@ public class ExclusivityTransfer extends CFTransfer {
         return new RegularTransferResult<>(null, in.getRegularStore());
     }
 
-    private ChainRule<AssignmentRule> getAssignmentRules(CFStore store) {
-        return new ChainRule<>(
-                new TRefNew(store, factory, analysis),
-                new TRefCopy(store, factory, analysis),
-                new TRefSplitMut(store, factory, analysis),
-                new TRefSplitImmut(store, factory, analysis),
-                new TRefTransfer(store, factory, analysis),
-                new TRefCopyRo(store, factory, analysis)
-        );
-    }
-
     @Override
     public TransferResult<CFValue, CFStore> visitMethodInvocation(
             MethodInvocationNode n, TransferInput<CFValue, CFStore> in
     ) {
         CFStore store = in.getRegularStore();
+
         try {
             new TMethodInvocation(store, factory, analysis).apply(n);
         } catch (RuleNotApplicable e) {
