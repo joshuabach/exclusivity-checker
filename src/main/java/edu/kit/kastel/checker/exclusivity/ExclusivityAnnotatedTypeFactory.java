@@ -79,8 +79,8 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     public boolean mayHoldProperty(@NonNull AnnotationMirror annotationMirror) {
         return qualHierarchy.isSubtype(
-                RESTRICTED,
-                annotationMirror
+                annotationMirror,
+                RESTRICTED
         );
     }
 
