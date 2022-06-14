@@ -169,4 +169,9 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             return super.getInferredValueFor(tree);
         }
     }
+
+    @Override
+    protected ExclusivityViewpointAdapter createViewpointAdapter() {
+        return new ExclusivityViewpointAdapter(this);
+    }
 }
