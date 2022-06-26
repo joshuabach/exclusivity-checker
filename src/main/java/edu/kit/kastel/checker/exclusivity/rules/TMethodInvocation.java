@@ -15,6 +15,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Set;
 
 public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
     public TMethodInvocation(CFStore store, ExclusivityAnnotatedTypeFactory factory, CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
@@ -22,7 +23,7 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
     }
 
     @Override
-    protected void applyInternal(MethodInvocationNode node) throws RuleNotApplicable {
+    protected void applyInternal(MethodInvocationNode node) {
         Node receiver = node.getTarget().getReceiver();
         TypeMirror receiverType;
         receiverType = node.getTarget().getMethod().getReceiverType();
@@ -74,10 +75,15 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
             }
 
             if (receiver instanceof ThisNode || !factory.mayHoldProperty(thisType)) {
-                for (FieldAccess field : store.getFieldValues().keySet()) {
-                    store.clearValue(field);
-                    System.out.printf("Clearing refinement for %s after %s\n",
-                            field, node);
+                // Copy keySet to prevent ConcurrentModificationException due to clearValue
+                for (FieldAccess field : Set.copyOf(store.getFieldValues().keySet())) {
+                    if (!hierarchy.isSubtype(
+                            factory.getExclusivityAnnotation(store.getValue(field).getAnnotations()),
+                            factory.EXCLUSIVITY_BOTTOM)) {
+                        store.clearValue(field);
+                        System.out.printf("Clearing refinement for %s after %s\n",
+                                field, node);
+                    }
                 }
             }
         }
