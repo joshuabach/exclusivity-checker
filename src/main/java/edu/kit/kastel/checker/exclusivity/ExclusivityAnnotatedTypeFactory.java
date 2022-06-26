@@ -1,7 +1,9 @@
 package edu.kit.kastel.checker.exclusivity;
 
+import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.util.TreePath;
 import edu.kit.kastel.checker.exclusivity.qual.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -116,6 +118,24 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     public void useRegularIFlow() {
         this.useIFlowAfter = null;
+    }
+
+    /**
+     * Recursively traverse parents in nodes tree path until containing method is found.
+     * This is an alternative for `analysis.getContainingMethod(node)` which seems buggy in some cases.
+     *
+     * TODO: Open issue about analysis.getContainingMethod in checker framework
+     * TODO: This class is not a good place for this method
+     *
+     * @param node A method invocation node
+     * @return The method containing the node
+     */
+    public MethodTree getContainingMethod(MethodInvocationNode node) {
+        TreePath tp = node.getTreePath();
+        while (tp.getLeaf().getKind() != Tree.Kind.METHOD) {
+            tp = tp.getParentPath();
+        }
+        return (MethodTree) tp.getLeaf();
     }
 
     private class ExclusivityTreeAnnotator extends TreeAnnotator {

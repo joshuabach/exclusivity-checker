@@ -61,7 +61,7 @@ public class TMethodInvocation extends AbstractTypeRule<MethodInvocationNode> {
                 thisType = factory.getExclusivityAnnotation(thisValue.getAnnotations());
             } else {
                 AnnotatedTypeMirror.AnnotatedDeclaredType currentMethodReceiverType =
-                        factory.getAnnotatedType(analysis.getContainingMethod(node.getTree()))
+                        factory.getAnnotatedType(factory.getContainingMethod(node))
                                 .getReceiverType();
 
                 if (currentMethodReceiverType == null) {

@@ -6,7 +6,7 @@ class MethodCall {
     // :: warning: inconsistent.constructor.type
     MethodCall() {}
 
-    void mth(@ShrMut MethodCall this) {}
+    void mth(@ReadOnly MethodCall this) {}
 
     void mthParam(@ShrMut MethodCall this, @ShrMut Foo arg) {}
 

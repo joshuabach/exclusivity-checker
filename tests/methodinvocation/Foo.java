@@ -4,6 +4,6 @@ class Foo {
     // :: warning: inconsistent.constructor.type
     public Foo() {}
 
-    public void mth(@ExclMut Foo this) {}
+    public void mth(@ReadOnly Foo this) {}
 }
 
