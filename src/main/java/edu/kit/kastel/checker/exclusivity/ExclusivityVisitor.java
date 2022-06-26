@@ -43,7 +43,17 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void p) {
-        // TODO What do we need to do here?
+        atypeFactory.useIFlowAfter(node);
+        validateTypeOf(node);
+        ExpressionTree recv = node.getMethodSelect();
+        validateTypeOf(recv);
+        if (recv instanceof MemberSelectTree) {
+            validateTypeOf(((MemberSelectTree) recv).getExpression());
+        }
+        for (ExpressionTree arg : node.getArguments()) {
+            validateTypeOf(arg);
+        }
+        atypeFactory.useRegularIFlow();
         return p;
     }
 
