@@ -99,11 +99,6 @@ public class ExclusivityAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         );
     }
 
-    public boolean isValid(AnnotatedTypeMirror annotatedType) {
-        AnnotationMirror annotation = getExclusivityAnnotation(annotatedType);
-        return annotation == null || isValid(annotation);
-    }
-
     @Override
     protected TreeAnnotator createTreeAnnotator() {
         return new ListTreeAnnotator(
