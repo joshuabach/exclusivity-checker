@@ -27,10 +27,7 @@ public class ExclusivityValidator extends BaseTypeValidator {
             return Collections.emptyList();
         }
 
-        boolean isValid = !atypeFactory.getQualifierHierarchy()
-                .isSubtype(typeAnno, atypeFactory.EXCLUSIVITY_BOTTOM);
-
-        List<DiagMessage> msgList = isValid
+        List<DiagMessage> msgList = atypeFactory.isValid(typeAnno)
                 ? Collections.emptyList()
                 : Collections.singletonList(new DiagMessage(Diagnostic.Kind.ERROR, "type.invalid"));
 
