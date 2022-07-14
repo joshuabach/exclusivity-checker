@@ -23,6 +23,8 @@ class Foo {
     public @ReadOnly Bar getROFake(@ReadOnly Foo this) {
         // :: error: type.invalid
         this.exclMut.change();
+        // :: error: type.invalid
+        this.shrMut.change();
         return ro;
     }
 }
