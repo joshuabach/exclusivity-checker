@@ -58,6 +58,14 @@ public class ExclusivityVisitor extends BaseTypeVisitor<ExclusivityAnnotatedType
     }
 
     @Override
+    public Void visitReturn(ReturnTree node, Void p) {
+        atypeFactory.useIFlowAfter(node);
+        validateTypeOf(node.getExpression());
+        atypeFactory.useRegularIFlow();
+        return p;
+    }
+
+    @Override
     protected TypeValidator createTypeValidator() {
         return new ExclusivityValidator(checker, this, atypeFactory);
     }

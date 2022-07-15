@@ -27,4 +27,13 @@ class Foo {
         this.shrMut.change();
         return ro;
     }
+
+    public @ExclMut Bar getExclMutFromRO(@ReadOnly Foo this) {
+        // :: error: type.invalid
+        return exclMut;
+    }
+
+    public @ExclMut Bar getExclMutFromShrMut(@ShrMut Foo this) {
+        return exclMut;
+    }
 }
